@@ -12,6 +12,7 @@ export interface Character {
 export interface HouseItem {
   name: string;
   region: string;
+  words: string;
   characters: Character;
   swornMembers: [string];
 }

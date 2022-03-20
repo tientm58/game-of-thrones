@@ -7,6 +7,7 @@ export const initialState: ContainerState = {
     {
       name: '',
       region: '',
+      words: '',
       characters: {
         name: '',
         title: '',

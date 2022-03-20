@@ -136,8 +136,6 @@ function Home() {
   };
 
   useEffect(() => {
-    // setSelectedSubData(subData.find(item => item.id === activedItemId)?.data);
-    // setSelectedItemDetail(null);
     dispatch(actionRestCharacterData());
     const houseSelected = housesLocal[activedItemId];
     if (houseSelected && !isEmpty(houseSelected?.swornMembers)) {
@@ -182,6 +180,7 @@ function Home() {
     const housesFilter = houses.filter(
       e =>
         (e.name && e.name.toLowerCase().includes(value.toLowerCase())) ||
+        (e.words && e.words.toLowerCase().includes(value.toLowerCase())) ||
         (e.region && e.region.toLowerCase().includes(value.toLowerCase())),
     );
     setHousesLocal(housesFilter);
@@ -215,6 +214,7 @@ function Home() {
                   icon={generateIcon(index)}
                   content={item.name}
                   subContent={item.region}
+                  wordContent={item.words}
                   isActive={activedItemId === index}
                 />
               </div>
