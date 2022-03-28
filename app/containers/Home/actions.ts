@@ -17,3 +17,6 @@ export const actionFetchCharacterData = (url: string) =>
 
 export const actionFetchCharacterDataSucessed = (data: any) =>
   action(ActionTypes.CHARACTER_DATA_FETCH_SUCCEEDED, data);
+
+export const actionViewDetailObjInModal = (data: any) =>
+  action(ActionTypes.VIEW_DETAIL_OBJ, data);

@@ -34,7 +34,7 @@ function homeReducer(
     case ActionTypes.HOUSE_DATA_FETCH_SUCCEEDED:
       return {
         ...state,
-        houses: action.payload,
+        ...action.payload,
       };
     case ActionTypes.CHARACTER_RESET_DATA:
       return {
@@ -59,6 +59,12 @@ function homeReducer(
       return {
         ...state,
         currentCharacters: currentCharactersFilter,
+      };
+    }
+    case ActionTypes.VIEW_DETAIL_OBJ: {
+      return {
+        ...state,
+        viewDetailObj: action.payload,
       };
     }
     default:

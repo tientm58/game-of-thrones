@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
+import Modal from 'react-modal';
+import moment from 'moment';
 import styled from 'styles/styled-components';
 import { isEmpty, debounce } from 'lodash';
 import { useInjectReducer, useInjectSaga } from 'utils/redux-injectors';
@@ -8,106 +10,46 @@ import CardItem from 'components/CardItem';
 import NavBar from 'components/NavBar';
 import Search from 'components/Search';
 import SubItem from 'components/SubItem';
+import Listing from 'components/Listing';
+import ModalComponent from 'components/Modal';
 import gameOfThronesLogo from 'images/gameOfThronesLogo.png';
 import {
   actionFetchHouseData,
   actionRestCharacterData,
   actionFetchCharacterData,
 } from './actions';
-import HomeContainer from './HomeContainer';
+import {
+  HomeContainer,
+  Header,
+  LogoImg,
+  SubLogo,
+  Container,
+  ListItem,
+  DetailItem,
+  TitleHouse,
+  TitleCharactor,
+  Button,
+} from './HomeContainer';
 import reducer from './reducer';
 import saga from './saga';
 import { makeSelectHouses, makeSelectCurrentCharacters } from './selectors';
-import { Character, HouseItem } from './types';
+import { Character, HouseItem, ISubContent } from './types';
 import { generateIcon, generateAvatar, generateBigAvatar } from './utils';
+import { ApplicationRootState } from 'types';
+import { TYPE, PROPERTY_VALUE, PROPERTY_DISPLAY_LABEL } from './constants';
+
+Modal.setAppElement('#home');
 
 const key = 'home';
 
-const Header = styled.div`
-  padding: 40px;
-  display: flex;
-  width: 700px;
-  height: 33px;
-  left: 85px;
-  top: 54px;
-  align-items: center;
-`;
-
-const LogoImg = styled.img`
-  width: 270px;
-  height: 33px;
-  object-fit: cover;
-`;
-
-const SubLogo = styled.div`
-  color: #b4b2b2;
-  padding-left: 15px;
-  border-left-style: solid;
-`;
-
-const Container = styled.div`
-  display: flex;
-  color: white;
-  column-gap: 80px;
-  margin-left: 50px;
-`;
-
-const ListItem = styled.div`
-  flex: 1;
-  margin-top: 20px;
-  background-color: #161616;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  height: fit-content;
-  padding-bottom: 15px;
-`;
-
-const SubListItem = styled.div`
-  flex: 1;
-  margin-top: 20px;
-  background-color: #161616;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  height: fit-content;
-  padding: 13px 0 13px 0;
-`;
-
-const DetailItem = styled.div`
-  flex: 1;
-`;
-const TitleHouse = styled.span`
-  position: absolute;
-  top: 80px;
-  font-family: 'Montserrat';
-  font-style: normal;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 13px;
-  color: #444444;
-`;
-const TitleCharactor = styled.span`
-  position: absolute;
-  left: 37.5%;
-  font-family: 'Montserrat';
-  font-style: normal;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 13px;
-  color: #444444;
-`;
-
-const stateSelector = createStructuredSelector({
-  houses: makeSelectHouses(),
-  currentCharacters: makeSelectCurrentCharacters(),
-});
-
 function Home() {
-  const [housesLocal, setHousesLocal] = useState<Array<HouseItem>>([]);
-  const { houses, currentCharacters } = useSelector(stateSelector);
+  const [openModal, setOpenModal] = useState(false);
+  const { books, houses, characters, viewDetailObj } = useSelector(
+    (state: ApplicationRootState) => {
+      return state.home || {};
+    },
+  );
+
   const dispatch = useDispatch();
 
   useInjectReducer({ key: key, reducer: reducer });
@@ -117,83 +59,66 @@ function Home() {
     dispatch(actionFetchHouseData());
   }, []);
 
-  const [activedItemId, setActivedItemId] = useState(0);
-  const [selectedSubData, setSelectedSubData] = useState<any>(null);
-  const [selectedItemDetailId, setSelectedItemDetailId] = useState<
-    null | number
-  >(null);
-  const [
-    selectedItemDetail,
-    setSelectedItemDetail,
-  ] = useState<Character | null>(null);
+  useEffect(() => {
+    if (viewDetailObj) {
+      setOpenModal(true);
+    }
+  }, [viewDetailObj]);
 
-  const handleClick = (id: number) => {
-    setActivedItemId(id);
+  const closeModal = () => {
+    setOpenModal(false);
   };
 
-  const handleShowDetailItem = (id: number) => {
-    setSelectedItemDetailId(id);
-  };
+  const renderModalContent = () => {
+    if (!viewDetailObj) return;
+    const { type, data } = viewDetailObj;
+    return (
+      <>
+        <div>Type: {type && type}</div>
+        {type === TYPE.BOOKS && (
+          <ul>
+            <li>
+              Authors:{' '}
+              {data?.authors && data?.authors.length && data?.authors[0]}
+            </li>
+            <li>Country: {data?.country}</li>
+            <li>IsBN: {data?.isbn}</li>
+            <li>Media Type: {data?.mediaType}</li>
+            <li>Name: {data?.name}</li>
+            <li>Number Of Pages: {data?.numberOfPages}</li>
+            <li>Publisher: {data?.publisher}</li>
+            <li>Released: {moment(data?.released).format('DD/MM/YYYY')}</li>
+          </ul>
+        )}
+        {type === TYPE.HOUSES && (
+          <ul>
+            <li>Coat Of Arms: {data?.coatOfArms}</li>
+            <li>Name: {data?.name}</li>
+            <li>Region: {data?.region}</li>
+            <li>Words: {data?.words}</li>
+            <li>
+              Seats: {data?.seats && data?.seats.length && data?.seats[0]}
+            </li>
+          </ul>
+        )}
+        {type === 'CHARACTERS' && (
+          <ul>
+            <li>Culture: {data?.culture}</li>
+            <li>Name: {data?.name}</li>
+            <li>Gender: {data?.gender}</li>
+            <li>Played By: {data?.playedBy}</li>
+            <li>
+              Aliases:{' '}
+              {data?.aliases && data?.aliases.length && data?.aliases[0]}
+            </li>
+          </ul>
+        )}
 
-  useEffect(() => {
-    dispatch(actionRestCharacterData());
-    const houseSelected = housesLocal[activedItemId];
-    if (houseSelected && !isEmpty(houseSelected?.swornMembers)) {
-      houseSelected.swornMembers.forEach(e => {
-        dispatch(actionFetchCharacterData(e));
-      });
-    }
-  }, [activedItemId]);
-
-  useEffect(() => {
-    if (!selectedSubData) {
-      const houseSelected = housesLocal[0];
-      if (houseSelected && !isEmpty(houseSelected.swornMembers)) {
-        houseSelected.swornMembers.forEach(e => {
-          dispatch(actionFetchCharacterData(e));
-        });
-      }
-    }
-  }, [housesLocal]);
-
-  useEffect(() => {
-    setHousesLocal(houses);
-  }, [houses]);
-
-  useEffect(() => {
-    if (
-      currentCharacters &&
-      selectedItemDetailId &&
-      currentCharacters[selectedItemDetailId]
-    )
-      setSelectedItemDetail(currentCharacters[selectedItemDetailId]);
-  }, [selectedItemDetailId]);
-
-  useEffect(() => {
-    if (currentCharacters && currentCharacters.length) {
-      setSelectedItemDetailId(0);
-      setSelectedItemDetail(currentCharacters[0]);
-    }
-  }, [currentCharacters]);
-
-  const filterHouses = value => {
-    const housesFilter = houses.filter(
-      e =>
-        (e.name && e.name.toLowerCase().includes(value.toLowerCase())) ||
-        (e.words && e.words.toLowerCase().includes(value.toLowerCase())) ||
-        (e.region && e.region.toLowerCase().includes(value.toLowerCase())),
+        <Button type="button" onClick={closeModal}>
+          Close Modal
+        </Button>
+      </>
     );
-    setHousesLocal(housesFilter);
-  };
-
-  const debounceFilterHouses = useCallback(
-    debounce(nextValue => filterHouses(nextValue), 1000),
-    [],
-  );
-
-  const handleFilter = e => {
-    const { value } = e.target;
-    debounceFilterHouses(value);
   };
 
   return (
@@ -203,62 +128,39 @@ function Home() {
         <SubLogo>QUEM É QUEM EM WESTEROS</SubLogo>
       </Header>
       <Container>
-        <TitleHouse>HOUSE</TitleHouse>
-        <ListItem>
-          <Search handleFilter={handleFilter} />
-          {housesLocal.map((item, index) => {
-            return (
-              <div onClick={() => handleClick(index)}>
-                <CardItem
-                  key={index}
-                  icon={generateIcon(index)}
-                  content={item.name}
-                  subContent={item.region}
-                  wordContent={item.words}
-                  isActive={activedItemId === index}
-                />
-              </div>
-            );
-          })}
-        </ListItem>
-        <TitleCharactor>CHARACTORS</TitleCharactor>
-        <SubListItem>
-          {currentCharacters && (
-            <>
-              {currentCharacters.map((item, index) => {
-                return (
-                  <>
-                    {item.name && (
-                      <div onClick={() => handleShowDetailItem(index)}>
-                        <SubItem
-                          key={index}
-                          icon={generateAvatar(index)}
-                          description={item.title}
-                          name={item.name}
-                          isActive={selectedItemDetailId === index}
-                        />
-                      </div>
-                    )}
-                  </>
-                );
-              })}
-            </>
-          )}
-        </SubListItem>
-        <DetailItem>
-          {selectedItemDetail && selectedItemDetail.name && (
-            <>
-              <div>
-                <NavBar
-                  icon={generateBigAvatar(selectedItemDetailId)}
-                  subName={selectedItemDetail.title}
-                  name={selectedItemDetail.name}
-                  desciption={selectedItemDetail.born}
-                />
-              </div>
-            </>
-          )}
-        </DetailItem>
+        {books && (
+          <Listing
+            title={TYPE.BOOKS}
+            propertyValue={PROPERTY_VALUE.BOOKS}
+            propertyDisplayLabel={PROPERTY_DISPLAY_LABEL.BOOKS}
+            dataSource={books}
+            generateIcon={generateIcon}
+          />
+        )}
+        {houses && (
+          <Listing
+            title={TYPE.HOUSES}
+            propertyValue={PROPERTY_VALUE.HOUSES}
+            propertyDisplayLabel={PROPERTY_DISPLAY_LABEL.HOUSES}
+            dataSource={houses}
+            generateIcon={generateIcon}
+          />
+        )}
+        {characters && (
+          <Listing
+            title={TYPE.CHARACTERS}
+            propertyValue={PROPERTY_VALUE.CHARACTERS}
+            propertyDisplayLabel={PROPERTY_DISPLAY_LABEL.CHARACTERS}
+            dataSource={characters}
+            generateIcon={generateAvatar}
+          />
+        )}
+        <ModalComponent
+          modalIsOpen={openModal}
+          closeModal={closeModal}
+          Modal={Modal}
+          renderContent={renderModalContent}
+        />
       </Container>
     </HomeContainer>
   );

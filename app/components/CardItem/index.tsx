@@ -1,28 +1,36 @@
 import React from 'react';
-import { Card, ContentContainer, Content, SubContent, IconItem } from './Card';
+import {
+  Card,
+  ContentContainer,
+  Content,
+  SubContent,
+  IconItem,
+  ViewDetail,
+} from './Card';
 import styled from 'styles/styled-components';
+import { CardProps, ISubContent } from '../../containers/Home/types';
 
-interface Props {
-  icon: string;
-  content: String;
-  subContent: String;
-  wordContent: String;
-  isActive: boolean;
-}
-interface propsContent {
-  isActive: boolean;
-}
-export default function CardItem(props: Props) {
-  const { icon, content, isActive, subContent, wordContent } = props;
+export default function CardItem(props: CardProps) {
+  const { icon, content, isActive, subContent, handleViewDetail } = props;
+
   return (
     <Card isActive={isActive}>
       <IconItem src={icon} />
       <ContentContainer>
         <Content isActive={isActive}>{content}</Content>
-        <SubContent isActive={isActive}>Region: {subContent}</SubContent>
-        {wordContent && (
-          <SubContent isActive={isActive}>Words: {wordContent}</SubContent>
-        )}
+        {subContent &&
+          subContent.map(
+            e =>
+              e.value &&
+              e.label != 'Name' && (
+                <SubContent isActive={isActive}>
+                  {e.label}: {e.value}
+                </SubContent>
+              ),
+          )}
+        <ViewDetail isActive={isActive} onClick={handleViewDetail}>
+          View Detail
+        </ViewDetail>
       </ContentContainer>
     </Card>
   );

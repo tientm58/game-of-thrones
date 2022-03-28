@@ -69,7 +69,7 @@ export default function LoginPage() {
   const handleLogin = e => {
     e.preventDefault();
     if (userInfor?.email === 'admin' && userInfor?.password === 'admin') {
-      const newDateTime = new Date().getTime() + 1000 * 60;
+      const newDateTime = new Date().getTime() + 1000 * 60 * 5;
       localStorage.setItem(EXPIRED_KEY, Number(newDateTime).toString());
       history.push('/game-of-thrones');
     } else {

@@ -30,4 +30,16 @@ type AppActions = ActionType<typeof actions>;
 type ContainerState = HomeState;
 type ContainerActions = AppActions;
 
+export interface ISubContent {
+  label: string;
+  value: string;
+}
+
+export interface CardProps {
+  icon: string;
+  content: String;
+  subContent: [ISubContent];
+  isActive: boolean;
+}
+
 export { ContainerState, ContainerActions };

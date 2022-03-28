@@ -2,7 +2,14 @@
  * Gets the repositories of the user from Github
  */
 
-import { call, put, select, takeLatest, takeEvery } from 'redux-saga/effects';
+import {
+  all,
+  call,
+  put,
+  select,
+  takeLatest,
+  takeEvery,
+} from 'redux-saga/effects';
 import { reposLoaded, repoLoadingError } from 'containers/App/actions';
 import ActionTypes from 'containers/Home/constants';
 import { ENDPOINTS } from '../../constants/endpoints.contants';
@@ -15,7 +22,11 @@ import { formatCharacter } from './utils';
 
 function* fetchHouseData() {
   try {
-    const data = yield call(request, ENDPOINTS.HOUSES);
+    const data = yield all({
+      books: call(request, ENDPOINTS.BOOKS),
+      houses: call(request, ENDPOINTS.HOUSES),
+      characters: call(request, ENDPOINTS.CHARACTERS),
+    });
     yield put(actionFetchHouseDataSucessed(data));
   } catch (error) {
     yield put({
